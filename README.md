@@ -18,14 +18,19 @@ Nomes de pastas:
 * **`etc`**: outros materiais de uso geral, como a pasta `img` de imagens deste README.
 
 ## Entregas
-No *workflow* os tipos de pacotes entregáveis são rotulados, uma entrega consiste do depósito de um ou mais desses pacotes, seguida de aviso em e-mail. Se os pocates forem integralmente aceitos, o Trello é atualizado. Entregas acordadas até o momento:
+No *workflow* os tipos de pacotes entregáveis são rotulados, uma entrega consiste do depósito de um ou mais desses pacotes, seguida de aviso em e-mail. Se os pocates forem integralmente aceitos, o Trello é atualizado. A seguir as entregas acordadas até o momento (o status delas deve ser verificado no Trello).
 
 **Entregas produtivas** contendo pacotes previstos pelo *workflow*:
 
-* **EP1 (HTM1)**: primeiro lote de resumos. 
+* **EP1 (HTM1)**: primeiro lote de resumos.
 
-**Entregas secundárias**, não-produtivas, para ajustes e discussões:
+* ...
+
+**Entregas secundárias**, não-produtivas, para ajustes, testes e discussões:
+
 * **ES1 (amostra/AO-t1, amostra/AO-t2)**:  amostra para discussão dos prazos e acertos contratuais entre as partes do *workflow*. 
+
+* ...
 
 ##Subsídios externos
 * http://www.sbpqo.org.br/
