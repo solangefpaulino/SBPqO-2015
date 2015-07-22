@@ -9,14 +9,13 @@ Repositório comum da equipe de processamento do material. Workflow:
 
 Nomes de pastas:
 
-* `amostras`: arquivos de amostragem de material bruto para decisões e discussões na equipe do projeto. <br/>Sintaxe `NOME-tX-vY.ext.zip`, onde `NOME.ext` é o nome original do arquivo, e `X` e `Y` a numeração sequencial da versão (1.1, 1.2, 2.1, etc.) que é hieraquizada em *teste* (1 para primeira tentativa, 2 para a segunda, etc.) e *versão* (pequenas alterações de formato ou correções do arquivo). Exemplos: `AO-t1-v1.html.zip`, o primeiro teste de dados brutos, `AO-t1-v2.html.zip` uma versão convertida para UTF8 e acrescida de tags para encapsulamento.
+* [**`amostras`**](./amostras): arquivos de amostragem de material bruto para decisões e discussões na equipe do projeto. <br/>Sintaxe `NOME-tX-vY.ext.zip`, onde `NOME.ext` é o nome original do arquivo, e `X` e `Y` a numeração sequencial da versão (1.1, 1.2, 2.1, etc.) que é hieraquizada em *teste* (1 para primeira tentativa, 2 para a segunda, etc.) e *versão* (pequenas alterações de formato ou correções do arquivo). Exemplos: `AO-t1-v1.html.zip`, o primeiro teste de dados brutos, `AO-t1-v2.html.zip` uma versão convertida para UTF8 e acrescida de tags para encapsulamento.
 
+* **`entregas`**: arquivos "brutos" de cada uma das entregas, finais ou parciais. 
 
-* `entregas`: arquivos "brutos" de cada uma das entregas, finais ou parciais. 
+* **`src`**: código-fonte das ferramentas de uso comum da equipe.
 
-* `src`: código-fonte das ferramentas de uso comum da equipe.
-
-* `etc`: outros materiais de uso geral, como a pasta `img` de imagens deste README.
+* **`etc`**: outros materiais de uso geral, como a pasta `img` de imagens deste README.
 
 ##Subsídios externos
 * http://www.sbpqo.org.br/
