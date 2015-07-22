@@ -1,7 +1,7 @@
 # SBPqO-2015
 Conversão do material do SBPqO-2015
 
-Repositório comum da equipe de processamento do material. Workflow:
+Repositório comum da equipe de processamento do material. *Workflow* :
 
 ![alt text](https://github.com/ppKrauss/SBPqO-2015/blob/master/etc/imgs/diagrama1-workflow.png "Logo Title Text 1")
 
@@ -17,8 +17,20 @@ Nomes de pastas:
 
 * **`etc`**: outros materiais de uso geral, como a pasta `img` de imagens deste README.
 
+## Entregas
+No *workflow* os tipos de pacotes entregáveis são rotulados, uma entrega consiste do depósito de um ou mais desses pacotes, seguida de aviso em e-mail. Se os pocates forem integralmente aceitos, o Trello é atualizado. Entregas acordadas até o momento:
+
+Entregas produtivas:
+
+* **EP1 (HTM1)** primeiro lote de resumos. 
+
+Entregas secundárias (demais entregas para ajustes e discussões):
+* **ES1** (amostra/AO-t1, amostra/AO-t2) amostra para discussão dos prazos e acertos contratuais entre as partes do *workflow*. 
+
 ##Subsídios externos
 * http://www.sbpqo.org.br/
 * https://trello.com/b/ST4FS44Z/sbpqo-2015
 * http://www.open-contracting.org
+* [Contratos em pequenos projetos](http://www.xmlfusion.org/wiki-do-mei/Contratos)
+
 
