@@ -26,12 +26,11 @@ No *workflow* os tipos de pacotes entregáveis são rotulados, uma entrega consi
 
 * ...
 
-* **Entregas secundárias**, não-produtivas, para ajustes e discussões:
+**Entregas secundárias**, não-produtivas, para ajustes, testes e discussões:
 
 * **ES1 (amostra/AO-t1, amostra/AO-t2)**:  amostra para discussão dos prazos e acertos contratuais entre as partes do *workflow*. 
 
 * ...
-
 
 ##Subsídios externos
 * http://www.sbpqo.org.br/
