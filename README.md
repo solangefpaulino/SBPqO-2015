@@ -20,12 +20,12 @@ Nomes de pastas:
 ## Entregas
 No *workflow* os tipos de pacotes entregáveis são rotulados, uma entrega consiste do depósito de um ou mais desses pacotes, seguida de aviso em e-mail. Se os pocates forem integralmente aceitos, o Trello é atualizado. Entregas acordadas até o momento:
 
-Entregas produtivas:
+**Entregas produtivas** contendo pacotes previstos pelo *workflow*:
 
-* **EP1 (HTM1)** primeiro lote de resumos. 
+* **EP1 (HTM1)**: primeiro lote de resumos. 
 
-Entregas secundárias (demais entregas para ajustes e discussões):
-* **ES1** (amostra/AO-t1, amostra/AO-t2) amostra para discussão dos prazos e acertos contratuais entre as partes do *workflow*. 
+**Entregas secundárias**, não-produtivas, para ajustes e discussões:
+* **ES1 (amostra/AO-t1, amostra/AO-t2)**:  amostra para discussão dos prazos e acertos contratuais entre as partes do *workflow*. 
 
 ##Subsídios externos
 * http://www.sbpqo.org.br/
