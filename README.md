@@ -3,7 +3,7 @@ Conversão do material do SBPqO-2015
 
 Repositório comum da equipe de processamento do material. Workflow:
 
-![alt text](https://github.com/ppKrauss/SBPqO-2015/raw/master/imgs/diagrama1-workflow.png "Logo Title Text 1")
+![alt text](https://github.com/ppKrauss/SBPqO-2015/blob/master/etc/imgs/diagrama1-workflow.png "Logo Title Text 1")
 
 ## Convenções
 
