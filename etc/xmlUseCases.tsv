@@ -1,0 +1,3 @@
+Pergunta do usuário para o app	parametros	Resposta (peter preenche)	Resposta2 (opcional)
+Qual a minha sala?	article_id	//article[@id=$article_id]/vcalendar/components/location	//sec[@id=//article[@id=$article_id]/@secid]/locations
+...			
