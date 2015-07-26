@@ -4,48 +4,27 @@
  * Uso:
  *  $ cd pdfGenerator/clientes/BOR/SBPqO_resumos
  *  $ php tools/main.php --help
- * ATENCAO: o mais correto é armazenar itens no PostgreSQL e gerencia-los por lá.
+ * FUTURO: armazenar itens no PostgreSQL 9.3+ (JSON!) e gerencia-los por lá.
  *   Por hora fazendo o possível com xsl_nRegister().
  */
-
-//setlocale (LC_COLLATE, 'pt_br');//
-// tb funciona: setlocale( LC_ALL, 'pt_BR.utf-8', 'pt_BR', 'Portuguese_Brazil');
-date_default_timezone_set('Brazil/East');
-setlocale(LC_ALL,'pt_BR.UTF8');
-mb_internal_encoding('UTF8'); 
-mb_regex_encoding('UTF8');
-
-$NTOTAL=0;
-$dayFilter = $dayLocais = ''; // para secao corrente
-
-define ('XML_HEADER1', '<?xml version="1.0" encoding="UTF-8"?>');
-$LIBVERS = '1.5'; // v1.4 de 2014-08-24; v1.3 de 2014-08-12; v1.2 de 2014-08-03; v1.1 de 2014-08-02; v1.0 de 2014-08-01.
-
-/*
- OUTROS SUBSIDIOS PARA O "PROJETO GETOPT-WSDL":
- Revisar: 
-  https://github.com/ulrichsg/getopt-php
-  http://pear.php.net/package/Console_GetoptPlus  
-  https://github.com/hguenot/GWebService/blob/master/command/WsdlCommand.php
-    https://github.com/hguenot/GWebService/blob/master/command/wsdl/assets/Getopt.php
-  Outras refs:
-    http://stackoverflow.com/a/1023142/287948
-    https://github.com/jcomellas/getopt
-*/
+$LIBVERS = '1.5.1'; // v1.5.0 de 2014; v1.4 de 2014-08-24; v1.3 de 2014-08-12; v1.2 de 2014-08-03; v1.1 de 2014-08-02; v1.0 de 2014-08-01.
 
 ///////  ///////  ///////  /////// 
 /////// I/O INICIALIZATION ///////
 $io_baseDir = realpath( dirname(__FILE__).'/..' );  // não usar getcwd();
 
 // CONFIGS:
-$fileDescr = "$io_baseDir/material/originais-UTF8/indice_descritores.csv";
-$fileLocalHora = "$io_baseDir/material/originais-UTF8/localHorario.csv";
-$fileField00 = 'COD_CHAVE';
-$buffsize = 3000;
-
-$MODO = 'extract';
-$finalUTF8 = 1;
-$SECAO = array(
+$modoAmostra   = TRUE;
+$pastaDados    = $modoAmostra? 'amostras': 'entregas';
+$fileAutores   = "$io_baseDir/../$pastaDados/indiceAutores-t1.csv"; // fora de uso, falta usar com resoluçao de homonimos!
+$fileDescr     = "$io_baseDir/../$pastaDados/indiceDescritores-t1.csv";
+$fileLocalHora = "$io_baseDir/../$pastaDados/localHorario-t1.csv";
+$fileFieldAu   = 'COD_AUTOR';
+$fileField00   = 'COD_CHAVE';
+$buffsize      = 3000;
+$MODO          = 'extract';
+$finalUTF8     = TRUE;
+$SECAO         = array( // na ordem
 	'PE'=>'Pesquisa em Ensino',
 	'PO'=>'PROJETO POAC (Projeto de Pesquisa Odontológica de Ação Coletiva)',
 	'PR'=>'PRONAC - Prêmio Incentivo A Pesquisa - Produtos Nacionais',	
@@ -57,14 +36,25 @@ $SECAO = array(
 	'PN'=>'Painel Aspirante e Efetivo',
 );
 
+
+define ('XML_HEADER1', '<?xml version="1.0" encoding="UTF-8"?>');
+//setlocale (LC_COLLATE, 'pt_br');
+date_default_timezone_set('Brazil/East');
+setlocale(LC_ALL,'pt_BR.UTF8'); // ou setlocale( LC_ALL, 'pt_BR.utf-8', 'pt_BR', 'Portuguese_Brazil');
+mb_internal_encoding('UTF8'); 
+mb_regex_encoding('UTF8');
+
+$NTOTAL        = 0;
+$dayFilter     = $dayLocais = ''; // para secao corrente
 // REVISAR NECESSIDADE DESSAS GLOBAIS E SUA UTILIZACAO
-$DESCRITORES = array();
-$DESCR_byResumo = array();
-$DESCR_bySec = array();
-$DESCR_resumoList= array();
-$LocHora_byResumo= array();
-$Resumos_byDia = array();
-$dayLocais_bySec = array();
+$DESCRITORES      = array();
+$DESCR_byResumo   = array();
+$DESCR_bySec      = array();
+$DESCR_resumoList = array();
+$LocHora_byResumo = array();
+$Resumos_byDia    = array();
+$dayLocais_bySec  = array();
+$ctrl_idnames     = array(); // cria e controla IDs
 
 // DESCRITORES DE CADA RESUMO:	
 if (($handle = fopen($fileDescr, "r")) !== FALSE) {
@@ -154,7 +144,7 @@ list($io_options,$io_usage,$io_options_cmd,$io_params) = getopt_FULLCONFIG(
 	    "h|help*"=>   	'show help message',
 	),
 
-	"Usage: 
+	"\nUsage: 
    php main.php [options] [--] [args...] [-f] {\$file} [-o] {\$file} 
    php assert.php [options] [--] [args...] [-f] {\$file} 
    php main.php [rexml] < {\$file_input} > {\$file_output}
@@ -170,7 +160,7 @@ list($io_options,$io_usage,$io_options_cmd,$io_params) = getopt_FULLCONFIG(
    --version	_MSG_
    -h
    --help   	_MSG_
-   "
+   \n"
 );
 
 /**
@@ -271,6 +261,18 @@ function getopt_msg($tpl,$longopts,$sp1='   ',$descNameRef='_DESCR_OPTIONS_') {
 	}
 	return $tpl;
 }
+/*
+	 OUTROS SUBSIDIOS PARA O "PROJETO GETOPT-WSDL":
+	 Revisar: 
+	  https://github.com/ulrichsg/getopt-php
+	  http://pear.php.net/package/Console_GetoptPlus  
+	  https://github.com/hguenot/GWebService/blob/master/command/WsdlCommand.php
+	    https://github.com/hguenot/GWebService/blob/master/command/wsdl/assets/Getopt.php
+	  Outras refs:
+	    http://stackoverflow.com/a/1023142/287948
+	    https://github.com/jcomellas/getopt
+*/
+
 
 //////// LIB ////////
 
@@ -306,7 +308,7 @@ class domParser extends DOMDocument { // refazer separando DOM como no RapiDOM!
 	/**
 	 * Get HTML body from any HTML file. Use show_*() methods to check it before to use. 
 	 */
-	function getHtmlBody($fileOrString, $enforceUtf8=false) {
+	function getHtmlBody($fileOrString, $enforceUtf8=false, $rmLF=TRUE) {
 		$this->resolveExternals = true;
 		$this->preserveWhiteSpace = false;  // com false baixou de 1510 nodes para 1101, ou seja ~25% num JATS tipico.
 		// ver também DTD HTML e  xml:space="preserve"
@@ -319,7 +321,7 @@ class domParser extends DOMDocument { // refazer separando DOM como no RapiDOM!
 				$fileOrString = mb_convert_encoding($fileOrString,'UTF-8',$enc); //$enc);
 		}
 		$this->encoding = 'UTF-8';
-
+		if ($rmLF) $fileOrString = str_replace (array("\r\n","\r"), "\n", $fileOrString);
 		if (!preg_match('/^\s*<\?xml\s/',$fileOrString)) {
 			$cc=0;// IMPORTANTE O META, SENAO loadHTML IGNORA!!
 			$fileOrString = preg_replace(
@@ -420,8 +422,37 @@ class domParser extends DOMDocument { // refazer separando DOM como no RapiDOM!
 		return '';
 	}
 
+	function setIdname($idname,$item,$withPrefix=TRUE) {
+		global $ctrl_idnames;
+		if (!array_key_exists($idname,$ctrl_idnames))
+			$ctrl_idnames[$idname] = array(1,array()); // contador e lista de ocorrências
+		if (isset($ctrl_idnames[$idname][1][$item])) 
+			$id = $ctrl_idnames[$idname][1][$item];
+		else {
+			$id = $ctrl_idnames[$idname][1][$item]=$ctrl_idnames[$idname][0];
+			$ctrl_idnames[$idname][0]++;
+		}
+		return $withPrefix? "$idname$id": $id;
+	}
+
+	function joinMarkId($lst, $idname='loc', $elename='location', $errUse=TRUE, $SEP='', $errTag='error') {
+		global $ctrl_idnames;
+		$outLst = array();
+		if (count($lst)) {
+			foreach($lst as $item) {
+				$idr = domParser::setIdname($idname,$item,TRUE);
+				$out[] = "<$elename idref='$idr'>$item</$elename>";
+			}
+			return join($SEP,$out);
+		} else {
+			return $errUse? "<$errTag/>": '';
+		}
+	}
+
+
 	// gera step1
 	// NAO USA MAIS dayFilter, arrumar
+// PERIGO, tem dados de 2014 forçados (ver sec=='PN')
 	function asXML($dayFilter='') {
 		global $Resumos_byDia;
 		global $DESCR_byResumo;
@@ -474,22 +505,25 @@ class domParser extends DOMDocument { // refazer separando DOM como no RapiDOM!
 						$per2 = "<period><start day=\"$dia\">$hini2</start><end>$hfim2</end></period>";
 					}
 					$event2='';
-					if 	($sec=='PN') {
-						$event2 = "<event2><summary>Reunião de Grupo</summary><period><start day=\"$dia\">17:30</start><end>19:00</end></period><location>$local</location></event2>";
-						$local = "Salão Monumentalle";					
+					$idloc = domParser::setIdname('loc',$local,TRUE);
+					if 	($sec=='PN') { // faz uso de dois locais!
+						$event2 = "<event2><summary>Reunião de Grupo</summary><period><start day=\"$dia\">17:30</start><end>19:00</end></period><location idref='$idloc'>$local</location></event2>";
+						$local = "Salão Monumentalle";
+						$idloc = domParser::setIdname('loc',$local,TRUE);	
 					}
 					$ele2->appendXML(
 						"<vcalendar><components>"
 						."<period><start day=\"$dia\">$hini</start><end>$hfim</end></period>"
 						.$per2
-						."<location>$local</location>"
+						."<location idref='$idloc'>$local</location>"
 						.$event2
 						."</components></vcalendar>"
 					);
 					$art->appendChild($ele2); // o primeiro já é iniciado
 
 					$ele2 = $auxDom->createDocumentFragment();
-					$ele2->appendXML( '<keys><key>'.join('</key><key>',$DESCR).'</key></keys>' );
+					$ele2->appendXML( '<keys>'.domParser::joinMarkId($DESCR,'k','key',0).'</keys>' );
+					//old $ele2->appendXML( '<keys><key>'.join('</key><key>',$DESCR).'</key></keys>' );
 					$art->appendChild($ele2);
 
 					foreach ($node->childNodes as $subnode) {
@@ -526,10 +560,12 @@ class domParser extends DOMDocument { // refazer separando DOM como no RapiDOM!
 			} //for
 
 			$locais = array_keys($locais);
-			$local = count($locais)? '<location>'.join('</location><location>',$locais).'</location>': '<error/>';
+			$local = domParser::joinMarkId($locais,'loc','location',1);
+			// $local = count($locais)? '<location>'.join('</location><location>',$locais).'</location>': '<error/>';
 
 			$dias = array_keys($dias);
-			$dia = count($dias)? '<day>'.join('</day><day>',$dias).'</day>': '<error/>';
+			$ndias = count($dias);
+			$dia = domParser::joinMarkId($dias,'d','day',1); // nao precisa id-sequencial (!) pois iso é ref. 
 
 			$secs = array_keys($secs);
 			$sec = (!count($secs) || count($secs)>1)? 'ERROR': $secs[0];
@@ -544,7 +580,7 @@ class domParser extends DOMDocument { // refazer separando DOM como no RapiDOM!
 			$XML = "<sec id=\"$sec$subsec\" label=\"$sec\" sec-order=\"$sord\" subsec=\"$subsec\" sec-type=\"modalidade\">
 				$err
 				<title>$sec$subsec - $title</title>
-				<days>$dia</days>
+				<days n='$ndias'>$dia</days>
 				<locations>$local</locations>
 				\n$XML\n</sec>\n";
 			return $XML;
@@ -561,13 +597,14 @@ class domParser extends DOMDocument { // refazer separando DOM como no RapiDOM!
 	 * Saída XML-padrão (campos normalizados, tags e atributos padronizados).
 	 * Traduz a saída do método asXML() para quase que um JATS.
 	 * @param $MODO string 'dom' ou 'xml', designa o tipo de retorno.
+	 * @param $p_dayFilter string empty or selected day (ISO format?).
 	 */
-	function asStdXML($MODO='dom',$dayFilter='') {
+	function asStdXML($MODO='dom',$p_dayFilter='') {
 		// criar boolean para match="article[fn:useThisId(string(@id),local,dia, keys)]"
 		// vai listar em array apenas os resumos e seu local e dia
-		$XSL = "<xsl:param name=\"dayFilter\">$dayFilter</xsl:param>\n".'
-
-			<xsl:template match="ERRO[@tipo=\'BR 7 imprevisto\']" /><!-- limpa warnings -->
+		$XSL = "<xsl:param name=\"dayFilter\">$p_dayFilter</xsl:param>\n";
+		$XSL .= <<<'EOD'
+			<xsl:template match="ERRO[@tipo='BR 7 imprevisto']" /><!-- limpa warnings -->
 
 			<xsl:template match="/">
 				<html>
@@ -579,11 +616,11 @@ class domParser extends DOMDocument { // refazer separando DOM como no RapiDOM!
 			</xsl:template>
 
 			<xsl:template match="sec">
-				<xsl:if test="$dayFilter=\'\' or ./days/day=$dayFilter">
+				<xsl:if test="$dayFilter='' or ./days/day=$dayFilter">
 				  <xsl:copy><xsl:copy-of select="@*"/>
 				  	<xsl:apply-templates select="title"/>
 					<xsl:choose>
-						<xsl:when test="$dayFilter=\'\'">
+						<xsl:when test="$dayFilter=''">
 						    <xsl:apply-templates select="days|locations"/>
 						    <keys todo="1"/>		<!-- must be unique and ordered -->						    
 					    	<xsl:apply-templates select=".//article"/>
@@ -599,7 +636,6 @@ class domParser extends DOMDocument { // refazer separando DOM como no RapiDOM!
 				</xsl:if><!-- else discard -->
 			</xsl:template>
 
-
 			<!-- some article elements: -->
 
 			<xsl:template match="article">
@@ -607,14 +643,14 @@ class domParser extends DOMDocument { // refazer separando DOM como no RapiDOM!
 					<xsl:copy-of select="@*"/>
 					<xsl:attribute name="id"><xsl:value-of select="./pubid" /></xsl:attribute>
 					<xsl:attribute name="secid">
-						<xsl:value-of select="fn:function(\'xsl_splitSecao\',string(./pubid),-1)" />
+						<xsl:value-of select="fn:function('xsl_splitSecao',string(./pubid),-1)" />
 					</xsl:attribute>
 					<xsl:apply-templates/>
 				</xsl:copy>
 				<!-- unique registering: -->
-				<xsl:copy-of select="fn:function(\'xsl_nRegister\', \'ev2\', string(./pubid), .//event2/location)" />				
-				<xsl:copy-of select="fn:function(\'xsl_nRegister\', \'loc\', string(./pubid), .//components/location)" />
-				<xsl:copy-of select="fn:function(\'xsl_nRegister\', \'key\', string(./pubid), .//key)" />				
+				<xsl:copy-of select="fn:function('xsl_nRegister', 'ev2', string(./pubid), .//event2/location)" />				
+				<xsl:copy-of select="fn:function('xsl_nRegister', 'loc', string(./pubid), .//components/location)" />
+				<xsl:copy-of select="fn:function('xsl_nRegister', 'key', string(./pubid), .//key)" />				
 			</xsl:template>
 
 			<xsl:template match="aff"><!-- perigo, agrupar sob artigo -->
@@ -622,16 +658,16 @@ class domParser extends DOMDocument { // refazer separando DOM como no RapiDOM!
 			</xsl:template>
 
 			<xsl:template match="contribs">
-				<xsl:copy-of select="fn:function(\'xsl_splitContrib\',.)" />
+				<xsl:copy-of select="fn:function('xsl_splitContrib',.)" />
 			</xsl:template>
 
 			<xsl:template match="corresp">
-				<xsl:copy-of select="fn:function(\'xsl_markCorresp\',.)" />
+				<xsl:copy-of select="fn:function('xsl_markCorresp',.)" />
 			</xsl:template>
-		'; // <vcalendar xmlns='urn:ietf:params:xml:ns:xcal'>  ver https://tools.ietf.org/html/rfc6321 
-
+EOD;
+		// <vcalendar xmlns='urn:ietf:params:xml:ns:xcal'>  ver https://tools.ietf.org/html/rfc6321 
 		$xmlDom = new DOMDocument('1.0', 'UTF-8');
-		$xmlDom->loadXML( $this->asXML($dayFilter) );  // redundancia se já no this.
+		$xmlDom->loadXML( $this->asXML($p_dayFilter) );  // redundancia se já no this.
 		$xmlDom->encoding = 'UTF-8';
 		$xmlDom = transformId_ToDom($XSL,$xmlDom);
 		$xmlDom->encoding = 'UTF-8';
@@ -661,8 +697,7 @@ class domParser extends DOMDocument { // refazer separando DOM como no RapiDOM!
 
 
 	/**
-	 * Saída XML-padrão (campos normalizados, tags e atributos padronizados).
-	 * Traduz a saída do método asStdXML() para quase que um hSJATS, em XHTML.
+	 * Saída XHTML controlada.
 	 * @param $MODO string 'dom' ou 'xml', designa o tipo de retorno.
 	 * @param $xmlDom DOMDocument, reusa a saida de asStdXML('dom'). 
 	 */
@@ -703,6 +738,8 @@ class domParser extends DOMDocument { // refazer separando DOM como no RapiDOM!
 			return ''; // já foi por print
 
 		} elseif ($MODO=='raw') {
+			$this->preserveWhiteSpace=FALSE;
+			$this->formatOutput=TRUE;
 			return $this->saveXML();
 
 		} elseif ($MODO=='xml')
@@ -788,8 +825,9 @@ function xsl_regRestore($type,$secid){
 	switch ($type) {
 	case 'key': // keys
 		foreach ($keys as $t) {
+			$idk = domParser::setIdname('k',$t,TRUE);
 			$s = join(', ',$registerLists[$tsid][$t]);
-			$k[] = "<key pubid-list=\"$s\">$t</key>";			
+			$k[] = "<key pubid-list=\"$s\" id=\"$idk\">$t</key>";			
 		}
 		return DOMDocument::loadXML( '<keys>'.join('',$k).'</keys>' );
 		break;
@@ -803,9 +841,10 @@ function xsl_regRestore($type,$secid){
 }
 
 function xsl_dayFormat($s){
+	$s2='';
 	if (preg_match('/(\d\d+)\-(\d+)\-(\d+)/',$s,$m))
-		$s = "$m[3]/$m[2]/$m[1]";
-    return DOMDocument::loadXML("<day>$s</day>");
+		$s2 = "$m[3]/$m[2]/$m[1]";
+    return DOMDocument::loadXML("<day iso='$s'>$s2</day>");
 }
 
 
@@ -874,67 +913,71 @@ function showDOMNode(DOMNode $domNode,$level=0) {
 } // func
 
 
-  function transformToDom($xsl, &$dom, $enforceUtf8=false) {
+function transformToDom($xsl, &$dom, $enforceUtf8=false) {
   	global $dayFilter; // da sec corrente
   	global $dayLocais; // idem
 
   	$xsldom = new DOMDocument('1.0','UTF-8');
-  	if ((strlen($xsl) < 300) && (strpos($xsl,'<') === false))
+  	if ( strlen($xsl)<300 && strpos($xsl,'<')===FALSE )
   		$xsl = file_get_contents($xsl); // por hora nao precisa converter para UTF8, sempre estará!
 	$xsldom->loadXML($xsl);
 	$xsldom->encoding = 'UTF-8';
-    $xproc = new XSLTProcessor();
-    $xproc->registerPHPFunctions(); // custom
-    $xproc->importStylesheet($xsldom);
-    if ($dayFilter) {
-    	preg_match('/\d+\-(\d+)\-(\d+)/', $dayFilter, $m);
-    	$setDia = "$m[2]/$m[1]";
-    	$xproc->setParameter('', 'dia', $setDia);
-    	$xproc->setParameter('', 'local', $dayLocais);
-    }
-    return  $xproc->transformToDoc($dom);
-    // return $this; 
-  }
+	$xproc = new XSLTProcessor();
+	$xproc->registerPHPFunctions(); // custom
+	$xproc->importStylesheet($xsldom);
+	if ($dayFilter) {
+		preg_match('/\d+\-(\d+)\-(\d+)/', $dayFilter, $m);
+		$setDia = "$m[2]/$m[1]";
+		$xproc->setParameter('', 'dia', $setDia);
+		$xproc->setParameter('', 'local', $dayLocais);
+	}
+	return  $xproc->transformToDoc($dom);
+	// return $this; 
+}
 
 
-  function transformFrag_ToDom($xsl,&$dom) {
-  	if ((strlen($xsl) < 300) && (strpos($xsl,'<') === false))
+ /**
+  * Wrap for transformToDom() adding a standard XSLT-header.
+  * @param $xsl string a filename or XSLT-block string.
+  * @param $dom DOMDocument input object.
+  * @param $fnNamespace string not empty (with name-space) when using register-functions.
+  * @return DOMDocument transformed.
+  */
+  function transformFrag_ToDom($xsl,&$dom,$fnNamespace='fn') {
+  	if ( strlen($xsl)<300 && strpos($xsl,'<')===FALSE )
   		$xsl = file_get_contents($xsl);
+	$xmlnsFn = $fnNamespace? "xmlns:$fnNamespace=\"http://php.net/xsl\"": '';
 	$s = '<?xml version="1.0" encoding="UTF-8"?>
 			<xsl:stylesheet version="1.0"
 				xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
 				xmlns:xlink="http://www.w3.org/1999/xlink"
 				xmlns:mml="http://www.w3.org/1998/Math/MathML"
-				xmlns:fn="http://php.net/xsl"
-				exclude-result-prefixes="xlink mml fn"  
+				'."$xmlnsFn
+				exclude-result-prefixes=\"xlink mml $fnNamespace\"  
 			>
-		'.$xsl.'
+		$xsl
 		</xsl:stylesheet>
-	';
-    return transformToDom($s,$dom);
+	";
+	return transformToDom($s,$dom);
   }
 
-
-  function transformId_ToDom($xsl,&$dom) {
-  	if ((strlen($xsl) < 300) && (strpos($xsl,'<') === false))
-  		$xsl = file_get_contents($xsl);
-	$s = '<?xml version="1.0" encoding="UTF-8"?>
-			<xsl:stylesheet version="1.0"
-				xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
-				xmlns:xlink="http://www.w3.org/1999/xlink"
-				xmlns:mml="http://www.w3.org/1998/Math/MathML"
-				xmlns:fn="http://php.net/xsl"
-				exclude-result-prefixes="xlink mml fn"  
-			>
+ /**
+  * XSLT-identity-transform with $xslFilter.
+  * @param $xslFilter string a filename or XSLT-block string.
+  * @param $dom DOMDocument input object.
+  * @return DOMDocument transformed.
+  */
+  function transformId_ToDom($xslFilter,&$dom,$fnNamespace='fn') {
+  	if ((strlen($xslFilter) < 300) && (strpos($xslFilter,'<') === false))
+  		$xslFilter = file_get_contents($xslFilter);
+	$xslComplete = '
 		<xsl:template match="@*|node()">
 		  <xsl:copy>
 		    <xsl:apply-templates select="@*|node()"/>
 		  </xsl:copy>
 		</xsl:template>
-		'.$xsl.'
-		</xsl:stylesheet>
-	';
-    return transformToDom($s,$dom);
+		'.$xslFilter;
+    return transformFrag_ToDom($xslComplete,$dom,$fnNamespace);
   }
 
 /// out

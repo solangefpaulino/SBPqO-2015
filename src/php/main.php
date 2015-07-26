@@ -3,7 +3,7 @@
  * RESUMOS, parser e analisador.
  * USO:
  *  $ cd projeto
- *  $ php tools/main.php --xml --in=material/originais-UTF8/ > SBPqO_step1.xml
+ *  $ php tools/main.php --xml --in=amostras/ > SBPqO_step1.xml
  *  $ php tools/main.php --finalXml --day=2014-09-03  --in=material/originais-UTF8/ > SBPqO_dia09-03.xml
  *  $ php tools/main.php -h
  */
@@ -87,16 +87,26 @@ function exec_cmd($cmd,$file,$isRELAT,$rmHeader=1,$finalUTF8=true) {
 		$out = trim($out);
 	}
 
-	if (!isset($io_options['breaklines'])) // na verdade no-breaklines
+	if (!isset($io_options['breaklines'])) { // na verdade no-breaklines
 		$out = str_replace(
 			array('<p',  '<div',  '<article',  '<sec',  '<keys', '<days'), 
-			array("\n<p","\n<div","\n<article","\n<sec","\n<keys","\n<days"),
+			array("\n\n\n<p","\n\n<div","\n\n<article","\n\n<sec","\n<keys","\n<days"),
 			$out
 		);
+		$out = preg_replace("/[ \\t]*\n[ \\t]*/s","\n",$out); // trim nas quebras de linha 
+	}
 
 	if (isset($io_options['normaliza'])){ // normaliza texto do autor!
-		$out = preg_replace('/(\d)\s+±\s+(\d)/us','$1&#8239;±&#8239;$2', $out);
+		// deveria parsear no XML ... Mas por hora tudo bem, pois não há risco em resumos simples.
+		$out = preg_replace('/(\d)(?:\s*±\s+|\s+±\s*)(\d)/us','$1±$2', $out); // sem &#8239;
+		$out = preg_replace('/±\s+/us','±', $out); // gruda a dirieta em "resultou em ± 2,5mm" ou "valores médios ± dp"
+		$out = preg_replace('/(\dº?)(?:\s*\-\s*)(\d)/us','$1−$2', $out);  // MINUS SIGN ("−"=&#8722; não é "-")
+		$out = preg_replace('/(\d)\s+%\s+/us','$1% ', $out); // ex "entre 32,7 % e 33,5%"
+		$out = preg_replace_callback('/\(apoio[^\)]+\)/is', function($m){return str_replace('−','-',$m[0]);}, $out); // undo
 		$out = preg_replace('/([\dp])\s*(&lt;|&gt;|=)\s*([\dp])/ius','$1&#8239;$2&#8239;$3', $out);
+//p é " p" .. ";p =", etc.
+		$out = preg_replace('|<(su[bp])>(\s*)(.+?)(\s*)</\1>|is','$2<$1>$3</$1>$4', $out); // ex. <sub>10 </sub>
+
 	}
 	if (isset($io_options['entnum']))
 		$out = utf2html($out);	
