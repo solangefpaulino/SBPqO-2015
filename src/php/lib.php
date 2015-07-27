@@ -401,17 +401,21 @@ class domParser extends DOMDocument { // refazer separando DOM como no RapiDOM!
 			$id='';
 			$n++;
 			$txt = $node->nodeValue;
-			if (preg_match('/^\s*([A-Z]+\-?[a-z]?[0-9]{1,5})/su',$txt,$m) && $id=$m[1]) {
-				$IDs[]=$id;
+			if (preg_match('/^\s*([A-Z]+\-?[a-z]?[0-9]{1,4})/su',$txt,$m) && $id=$m[1]) {
 				$ntype = array();
-				$first='';
+				$first=''; // can be mixed with some tag like bolds, when fails
 				foreach($xp->query('.//node()',$node) as $subnode) { // ERRO, não é um taverse, requer recorrencia.
 					$this->setItem( $ntype, $subnode->nodeName ); // .{$subnode->nodeType}
-					if ($subnode->nodeName=='#text' && !$first) $first=trim($subnode->nodeValue);
+					if (!$first && '#text'==$subnode->nodeName) $first=trim($subnode->nodeValue);
 				}
-				$RELAT.= "\n\tlinha $n, pubid $id: ";
-				if ($first!=$id)
-					$RELAT.= " !diff id $first!=$id! ";
+				$RELAT.= "\n\tparagraph $n, pubid $first: ";
+				// if (!$first || substr($id,0,strlen($first))!=$first) // side effect by title's digits
+				if ($id!=$first) {
+					$dump = mb_substr($txt,0,25,'UTF-8');
+					$RELAT.= " !diff id $first!=$id! (dump: $dump)";
+				}
+				$id=$first;
+				$IDs[]=$id;
 				foreach ($ntype as $k=>$v) $RELAT.= "$k=$v; ";
 			} else 
 				$RELAT.= "\n\t!paragraph $n ERROR! content of 30 firsts: '".substr($txt,0,30)."'";
